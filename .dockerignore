@@ -1,0 +1,17 @@
+env
+
+__pycache__
+
+/*/__pycache__
+
+.vscode
+
+build
+
+docs
+
+tests
+
+dist/*
+
+*.db
