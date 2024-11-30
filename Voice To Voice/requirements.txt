@@ -1,0 +1,10 @@
+audio-recorder-streamlit
+streamlit
+fastapi
+uvicorn
+python-dotenv
+datetime
+openai
+pathlib
+requests
+python-multipart
