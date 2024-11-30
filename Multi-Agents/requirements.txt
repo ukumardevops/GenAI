@@ -1,0 +1,5 @@
+python-dotenv
+crewai[tools]
+langchain
+langchain-community
+langchain-core
