@@ -1,0 +1,4 @@
+2024-11-30 15:19:04,937 - AppLogger - INFO - Created directory data
+2024-11-30 15:19:04,937 - AppLogger - INFO - Running function to generate data for data/initial_elements_data.pkl
+2024-11-30 15:20:02,206 - AppLogger - INFO - Running function to generate data for data/initial_summaries_data.pkl
+2024-11-30 15:20:53,812 - AppLogger - INFO - Query 1: What are the main themes in these documents?
