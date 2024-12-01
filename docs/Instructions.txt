@@ -1,0 +1,4372 @@
+
+Professional - Generative AI Application Development
+
+This is used mainly to share code snippets,command or any scripts
+
+
+Day 1
+
+
+In the terminal window,
+
+cd \
+
+
+md LC-Demonstrations
+
+cd LC-Demonstrations
+
+python -m venv env
+
+env\Scripts\activate
+
+https://github.com/iomegak12/std-python-module
+
+requirements.txt
+
+
+art
+langchain
+langchain-core
+langchain-community
+langchain-openai
+langchain-experimental
+python-dotenv
+
+
+
+in the terminal window of vs code,
+
+pip install -r requirements.txt
+
+create a file named ".env"
+
+and the paste the following content
+
+
+SERPER_API_KEY=YOUR_SERPER_API_KEY
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY
+
+
+create a file named "try-2.ipynb"
+
+import os
+from dotenv import load_dotenv
+from langchain_core.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
+
+
+
+
+
+load_dotenv()
+
+openai_api_key = os.environ["OPENAI_API_KEY"]
+model_name = "gpt-3.5-turbo-0125"
+max_tokens = 1000
+
+
+
+
+print(os.environ["OPENAI_API_KEY"])
+
+
+
+llm = ChatOpenAI(
+    model=model_name,
+    temperature=0.5,
+    openai_api_key=openai_api_key,
+    max_tokens=max_tokens
+)
+
+
+prompt_template = PromptTemplate(
+    input_variables=["topic1", "topic2"],
+    template = "Give me a tweet idea about {topic1} and {topic2}"
+)
+
+
+
+prompt = prompt_template.format(topic1="AI", topic2 = "LLM")
+response = llm.invoke(prompt)
+
+
+
+print(response.content)
+
+
+
+create a file named "try-3.ipynb"
+
+in the mark down,
+
+### LCEL
+
+
+import os
+from dotenv import load_dotenv
+from langchain_core.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
+
+
+
+
+
+load_dotenv()
+
+openai_api_key = os.environ["OPENAI_API_KEY"]
+model_name = "gpt-3.5-turbo-0125"
+max_tokens = 1000
+
+
+
+
+
+
+
+llm = ChatOpenAI(
+    model=model_name,
+    temperature=0.5,
+    openai_api_key=openai_api_key,
+    max_tokens=max_tokens
+)
+
+
+
+
+prompt = PromptTemplate(
+    input_variables=["topic1", "topic2"],
+    template="Give me a tweet idea about {topic1} and {topic2}"
+)
+chain = prompt | llm
+
+
+response = chain.invoke({
+    "topic1": "NLP",
+    "topic2": "Speech Recognition"
+})
+
+print(response.content)
+
+
+
+
+
+Create a file named "try-3.ipynb"
+
+select the kernel
+
+mark down to Prompt Template - Language Statement Generation
+
+
+import os
+from dotenv import load_dotenv
+from langchain_core.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
+
+
+
+
+load_dotenv()
+
+openai_api_key = os.environ["OPENAI_API_KEY"]
+model_name = "gpt-3.5-turbo-0125"
+max_tokens = 1000
+
+
+
+
+llm = ChatOpenAI(
+    model=model_name,
+    temperature=0.5,
+    openai_api_key=openai_api_key,
+    max_tokens=max_tokens
+)
+
+
+customer_style = """American english in calm and respectful tone"""
+customer_email = """
+Arrr, I be fuming that me blender lid \
+flew off and splattered me kitchen walls \
+with smoothie! And to make matters worse,\
+the warranty don't cover the cost of \
+cleaning up me kitchen. I need yer help \
+right now, matey!
+"""
+
+
+
+
+template_string = """Translate the text \
+that is delimited by triple backticks \
+into a style that is {style}. \
+text: ```{text}```
+"""
+
+prompt_template = ChatPromptTemplate.from_template(template_string)
+customer_messages = prompt_template.format_messages(
+    style=customer_style, text=customer_email
+)
+
+
+customer_response = llm.invoke(customer_messages)
+
+
+
+print(customer_response.content)
+
+
+
+
+Create a file named "try-5.ipynb" and add the markdown to Resolving Data Quality Issues
+
+
+import os
+from dotenv import load_dotenv
+from langchain_core.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain.output_parsers import StructuredOutputParser, ResponseSchema
+
+
+load_dotenv()
+
+openai_api_key = os.environ["OPENAI_API_KEY"]
+model_name = "gpt-3.5-turbo-0125"
+max_tokens = 1000
+
+
+llm = ChatOpenAI(
+    model=model_name,
+    temperature=0.5,
+    openai_api_key=openai_api_key,
+    max_tokens=max_tokens
+)
+
+
+response_schema = [
+    ResponseSchema(name = "bad_string", description = "This is poorly formatted user response"),
+    ResponseSchema(name = "good_string", description = "This is your response, after properly formatted.")
+]
+
+output_parser = StructuredOutputParser.from_response_schemas(response_schema)
+format_instructions = output_parser.get_format_instructions()
+
+
+
+
+template = """
+You shall be given a poorly formatted string from a user.
+Reformat it and make sure all the words are spelled correctly.
+
+{format_instructions}
+
+% USER INPUT:
+{user_input}
+
+YOUR RESPONSE:
+"""
+
+prompt = PromptTemplate(
+    input_variables = ["user_input"],
+    partial_variables = {
+        "format_instructions": format_instructions
+    },
+    template = template
+)
+
+
+
+prompt_value = prompt.format(user_input = "Welcom to Califonya")
+
+llm_output = llm.invoke(prompt_value)
+
+
+
+result = output_parser.parse(llm_output.content)
+result["good_string"]
+
+
+
+create a file named "try-6.ipynb" and markdown "Structured Output Parsing - Real World"
+
+import os
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
+from typing import Optional, Sequence
+from langchain.chains.openai_functions import create_structured_output_chain
+from langchain.prompts import ChatPromptTemplate
+
+
+load_dotenv()
+
+openai_api_key = os.environ["OPENAI_API_KEY"]
+model_name = "gpt-3.5-turbo-0125"
+
+llm = ChatOpenAI(
+    model=model_name,
+    openai_api_key=openai_api_key,
+    temperature=0.1,
+    max_tokens=1000
+)
+
+
+class Person(BaseModel):
+    """
+    Identifying information about a person.
+    """
+
+    name: str = Field(..., description="The Peronn's Name")
+    age: int = Field(..., description="The Person's Age")
+    yearsOfExperience: int = Field(...,
+                                   description="The Person's Number of Years of Experience")
+    fav_food: Optional[str] = Field(
+        None, description="The Person's Favorite Food")
+        
+        
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", "You are a world class algorithm for extracting information in structured formats."),
+        ("human", "Use the given format to extract information from the following input: {input}"),
+        ("human", "Tip: Make sure to answer in the correct format"),
+    ]
+)
+
+
+chain = create_structured_output_chain(Person, llm, prompt)
+
+request = "Ramkumar is 48 Years Old, and 27 Years Of Experience in the industry, and likes to have most of south indian food. Rajeev is 42 Years Old and having 17 years of Experience, and likes to have most of the times North Indian food items."
+
+
+response = chain.run(request)
+
+
+print(response)
+
+
+
+
+class People(BaseModel):
+    people: Sequence[Person] = Field(...,
+                                     description="Team Members of a project")
+                                     
+                                     
+chain = create_structured_output_chain(People, llm, prompt)
+
+
+request = "Ramkumar is 48 Years Old, and 27 Years Of Experience in the industry, and likes to have most of south indian food. Rajeev is 42 Years Old and having 17 years of Experience, and likes to have most of the times North Indian food items. Wajeeth is nearing to 45 years, and has 20 years of industry experience."
+response = chain.run(request)
+
+
+
+print(response)
+
+
+create a file named "try-7.ipynb" and mark down to "Multiple Chains - Sequential Execution"
+
+import os
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from langchain.chains import LLMChain, SequentialChain
+from langchain.prompts import PromptTemplate
+
+
+
+load_dotenv()
+
+openai_api_key = os.environ["OPENAI_API_KEY"]
+model_name = "gpt-3.5-turbo-0125"
+llm = ChatOpenAI(
+    model=model_name,
+    openai_api_key=openai_api_key,
+    temperature=0.1,
+    max_tokens=1000
+)
+
+
+
+template1 = """
+Write a blog outline given a topic
+
+Topic: {topic}
+"""
+
+template2 = """
+Write a blog article based on the below outline.
+
+Outline: {outline}
+"""
+
+prompt1 = PromptTemplate(
+    input_variables = ["topic"],
+    template = template1
+)
+
+prompt2 = PromptTemplate(
+    input_variables = ["outline"],
+    template = template1
+)
+
+
+
+
+
+chain1 = LLMChain(
+    llm = llm,
+    prompt = prompt1,
+    output_key = "outline"
+)
+
+chain2 = LLMChain(
+    llm = llm,
+    prompt = prompt2,
+    output_key = "article"
+)
+
+
+
+
+
+
+overall_chain = SequentialChain(
+    chains = [chain1, chain2],
+    input_variables = ["topic"],
+    output_variables = ["outline", "article"],
+    verbose = True
+)  
+
+
+
+
+
+
+response = overall_chain({
+    "topic": "Corona Virus Management in India"
+})
+
+
+
+
+
+print(response)
+print(response["outline"])
+print(response["article"])
+
+
+
+
+create a file named "try-8.ipynb" and mark down to Agents
+
+import os
+from dotenv import load_dotenv
+from langchain import hub
+from langchain_openai import ChatOpenAI
+from langchain_core.tools import tool
+from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain_community.utilities import GoogleSerperAPIWrapper
+
+
+load_dotenv()
+
+openai_api_key = os.environ["OPENAI_API_KEY"]
+model_name = "gpt-4"
+llm = ChatOpenAI(
+    model = model_name,
+    openai_api_key = openai_api_key,
+    temperature = 1,
+    max_tokens = 1000
+)
+
+
+@tool
+def multiply(first_int: int, second_int: int) -> int:
+    """Multiplies two integers together"""
+
+    return first_int * second_int
+
+
+@tool
+def add(first_int: int, second_int: int) -> int:
+    """Adds or Sums two integers together"""
+
+    return first_int + second_int
+
+
+@tool
+def exponentize(base: int, exponent: int) -> int:
+    """Exponentize the base to the exponent value"""
+
+    return base ** exponent
+
+
+
+
+@tool("SerperSearch")
+def search(query_string: str):
+    """
+    Useful to search for any kind of information and
+    when you need to search the internet for any kinds of detailed information.
+    """
+
+    search = GoogleSerperAPIWrapper()
+    
+    return search.run(query_string)
+    
+    
+    
+    
+tools = [multiply, add, exponentize, search]
+prompt = hub.pull("hwchase17/openai-tools-agent")
+agent = create_tool_calling_agent(llm, tools, prompt)
+agent_executor = AgentExecutor(agent = agent, tools = tools, verbose = True)    
+
+
+
+
+
+
+
+question = """
+take 3 to the fifth power and multiply that by the sum of twelve and three, 
+then square the whole result. And let me know the capital of Malaysia
+"""
+
+response = agent_executor.invoke({
+    "input": question
+})
+
+
+
+print(response)
+
+
+
+
+
+Homework:
+
+Create a workflow automation agent that performs the following.
+
+User Request:
+
+Please check my unread emails from my email account, and let me know the email message that is related to business unit BUX8494 and summarize the email message, and prepare the response
+message for the email, and send email to administrator@info.com. And what's the capital of France and sight-seeings of the location.
+
+
+
+
+Day 2
+
+
+create a file named "try-9.ipynb" and mark down to ### Router Chain
+
+
+import os
+from dotenv import load_dotenv
+from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain.chains import LLMChain
+from langchain.chains.router import MultiPromptChain
+from langchain.chains.router.llm_router import LLMRouterChain,RouterOutputParser
+
+
+
+
+
+
+load_dotenv()
+
+openai_api_key = os.environ["OPENAI_API_KEY"]
+model_name = "gpt-3.5-turbo-0125"
+max_tokens = 1000
+
+
+llm = ChatOpenAI(
+    model=model_name,
+    temperature=0.5,
+    openai_api_key=openai_api_key,
+    max_tokens=max_tokens
+)
+
+
+
+
+physics_template = """You are a very smart physics professor. \
+You are great at answering questions about physics in a concise\
+and easy to understand manner. \
+When you don't know the answer to a question you admit\
+that you don't know.
+
+Here is a question:
+{input}"""
+
+math_template = """You are a very good mathematician. \
+You are great at answering math questions. \
+You are so good because you are able to break down \
+hard problems into their component parts,
+answer the component parts, and then put them together\
+to answer the broader question.
+
+Here is a question:
+{input}"""
+
+history_template = """You are a very good historian. \
+You have an excellent knowledge of and understanding of people,\
+events and contexts from a range of historical periods. \
+You have the ability to think, reflect, debate, discuss and \
+evaluate the past. You have a respect for historical evidence\
+and the ability to make use of it to support your explanations \
+and judgements.
+
+Here is a question:
+{input}"""
+
+
+
+
+# Defining the prompt templates
+prompt_infos = [
+    {
+        "name": "physics",
+        "description": "Good for answering questions about physics",
+        "prompt_template": physics_template
+    },
+    {
+        "name": "math",
+        "description": "Good for answering math questions",
+        "prompt_template": math_template
+    },
+    {
+        "name": "History",
+        "description": "Good for answering history questions",
+        "prompt_template": history_template
+    }
+]
+
+
+
+
+destination_chains = {}
+
+for p_info in prompt_infos:
+    name = p_info["name"]
+    prompt_template = p_info["prompt_template"]
+    prompt = ChatPromptTemplate.from_template(template=prompt_template)
+    chain = LLMChain(llm=llm, prompt=prompt)
+    destination_chains[name] = chain
+
+destinations = [f"{p['name']}: {p['description']}" for p in prompt_infos]
+destinations_str = "\n".join(destinations)
+
+
+
+
+print(destinations_str)
+
+
+MULTI_PROMPT_ROUTER_TEMPLATE = """Given a raw text input to a \
+language model select the model prompt best suited for the input. \
+You will be given the names of the available prompts and a \
+description of what the prompt is best suited for. \
+You may also revise the original input if you think that revising\
+it will ultimately lead to a better response from the language model.
+
+<< FORMATTING >>
+Return a markdown code snippet with a JSON object formatted to look like:
+```json
+{{{{
+    "destination": string \ name of the prompt to use or "DEFAULT"
+    "next_inputs": string \ a potentially modified version of the original input
+}}}}
+```
+
+REMEMBER: "destination" MUST be one of the candidate prompt \
+names specified below OR it can be "DEFAULT" if the input is not\
+well suited for any of the candidate prompts.
+REMEMBER: "next_inputs" can just be the original input \
+if you don't think any modifications are needed.
+
+<< CANDIDATE PROMPTS >>
+{destinations}
+
+<< INPUT >>
+{{input}}
+
+<< OUTPUT (remember to include the ```json)>>"""
+
+
+default_prompt = ChatPromptTemplate.from_template("{input}")
+default_chain = LLMChain(llm=llm, prompt=default_prompt)
+
+
+
+router_template = MULTI_PROMPT_ROUTER_TEMPLATE.format(
+    destinations=destinations_str
+)
+router_prompt = PromptTemplate(
+    template=router_template,
+    input_variables=["input"],
+    output_parser=RouterOutputParser(),
+)
+
+router_chain = LLMRouterChain.from_llm(llm, router_prompt)
+
+
+chain = MultiPromptChain(router_chain=router_chain,
+                         destination_chains=destination_chains,
+                         default_chain=default_chain, verbose=True
+                         )
+                         
+                         
+                         
+chain.run("What is Black Body Radiation?")
+
+
+chain.run("What is 2+2?")
+
+chain.run("I want to understand probabilistic theories in statistics")
+
+
+chain.run("Please tell me where did exactly Napolean Bonaparte die?")
+
+
+chain.run("What is your name?")
+
+
+
+SQL Agent Exercise
+
+
+https://github.com/iomegak12/lc-training-data
+
+
+create a folder named "use-cases"
+
+and create a file named "use-case-1.ipynb"
+
+
+mark down to SQL Agents
+
+
+
+import os
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from langchain_community.utilities import SQLDatabase
+from langchain.chains import create_sql_query_chain
+
+
+
+
+load_dotenv()
+
+openai_api_key = os.environ["OPENAI_API_KEY"]
+model_name = "gpt-3.5-turbo-0125"
+llm = ChatOpenAI(
+    model=model_name,
+    openai_api_key=openai_api_key,
+    temperature=0.1,
+    max_tokens=1000
+)
+
+
+
+db_file_path = "./chinook.db"
+db = SQLDatabase.from_uri(f"sqlite:///{db_file_path}")
+
+
+
+
+print(db.dialect)
+print(db.get_usable_table_names())
+
+
+
+
+query = "SELECT * FROM Artist LIMIT 10;"
+
+db.run(query)
+
+
+
+
+chain = create_sql_query_chain(llm, db)
+
+
+
+response = chain.invoke({
+    "question": "How many employees are there in the organization?"
+})
+
+print(response)
+
+
+
+db.run(response)
+
+
+
+
+
+
+
+from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
+from langchain_core.tools import tool
+
+
+@tool
+def parse(query_string: str) -> str:
+    """
+    Parses Generated SQL Statement
+    """
+
+    splitted = query_string.split(":")
+
+    if (len(splitted) >= 2):
+        query = splitted[1]
+    else:
+        query = query_string
+
+    return query
+	
+    
+    
+    
+    
+# GPT 4 Generated SQL Statement
+
+query = """
+QUERY: SELECT COUNT("EmployeeId") AS "TotalEmployees"
+FROM "Employee"
+"""
+
+
+
+
+print(parse.invoke(query))
+
+
+
+
+# GPT 3.5 Generated SQL Statement
+query = """
+SELECT COUNT("EmployeeId") AS "TotalEmployees"
+FROM "Employee"
+"""
+
+print(parse.invoke(query))
+
+
+
+
+execute_query = QuerySQLDataBaseTool(db = db)
+write_query = create_sql_query_chain(llm, db)
+
+chain = write_query | parse | execute_query
+
+
+
+
+
+question = "How many employees are there in the organization?"
+
+response = chain.invoke({
+    "question": question
+})
+
+print(response)
+
+
+
+
+
+from langchain_core.prompts import PromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
+from operator import itemgetter
+
+answer_prompt = PromptTemplate.from_template(
+    """
+    Given the following user question, corresponding SQL Query, and SQL Result, answer the user question.
+
+    Question: {question}
+    SQL Query: {query}
+    Result: {result}
+    Answer:
+    """
+)
+
+
+
+
+
+
+chain = RunnablePassthrough.assign(query = write_query) \
+    .assign(result = itemgetter("query") | parse | execute_query) | \
+    answer_prompt | llm | StrOutputParser()
+
+
+
+
+
+question = "How many employees are there in the organization?"
+
+response = chain.invoke({
+    "question": question
+})
+
+print(response)
+
+
+
+
+
+
+from langchain_community.agent_toolkits import SQLDatabaseToolkit
+
+toolkit = SQLDatabaseToolkit(db = db, llm = llm)
+
+tools = toolkit.get_tools()
+
+tools
+
+
+
+from langgraph.prebuilt import create_react_agent
+from langchain_core.messages import HumanMessage, SystemMessage
+
+
+
+SQL_PREFIX = """
+You are an agent designed to interact with a SQL database.
+Given an input question, create a syntactically correct SQLite query to run, then look at the results of the query and return the answer.
+Unless the user specifies a specific number of examples they wish to obtain, always limit your query to at most 5 results.
+You can order the results by a relevant column to return the most interesting examples in the database.
+Never query for all the columns from a specific table, only ask for the relevant columns given the question.
+You have access to tools for interacting with the database.
+Only use the below tools. Only use the information returned by the below tools to construct your final answer.
+You MUST double check your query before executing it. If you get an error while executing a query, rewrite the query and try again.
+
+DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.
+
+To start you should ALWAYS look at the tables in the database to see what you can query.
+Do NOT skip this step.
+Then you should query the schema of the most relevant tables.
+"""
+
+
+
+
+
+system_message = SystemMessage(content=SQL_PREFIX)
+agent_executor = create_react_agent(
+    llm, tools, messages_modifier=system_message
+)
+
+
+
+
+
+for stream in agent_executor.stream({
+    "messages": [
+        HumanMessage(content="which country's customers have spent the most?")
+    ]
+}):
+    print(stream)
+    print("******")
+    
+    
+    
+for stream in agent_executor.stream({
+    "messages": [
+        HumanMessage(content="Describe the playlisttrack table.")
+    ]
+}):
+    print(stream)
+    print("******")
+
+
+
+
+
+for stream in agent_executor.stream({
+    "messages": [
+        HumanMessage(content="Top 5 customers who have spent most buying MPEG Audio, and heavy metal type of playlists.")
+    ]
+}):
+    print(stream)
+    print("******")
+    
+    
+    
+    
+
+CSV Pandas Dataframe Agent
+
+create a file naemd use-case-2.py
+
+and paste the following contents
+
+
+import os
+import streamlit as st
+import pandas as pd
+
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
+
+
+def main():
+    try:
+        load_dotenv()
+
+        st.set_page_config(
+            page_icon=":books:",
+            page_title="Interact with CSV Data ..."
+        )
+
+        st.title("HR - Attrition Analytics")
+        st.subheader("Helps you to understand HR Employees Attritions!")
+
+        st.markdown("""
+                    This chatbot is created to demonstrate how CSV Tabular Data can be processed and analyzed by the model.
+                    """)
+
+        user_question = st.text_input(
+            "Ask your questions about HR Employees Attritioning ...")
+
+        csv_path = "./hr-employees-attritions-internet.csv"
+
+        df = pd.read_csv(csv_path)
+
+        llm = ChatOpenAI(
+            temperature=0,
+            max_tokens=1000,
+            openai_api_key=os.environ["OPENAI_API_KEY"],
+            model_name="gpt-4"
+        )
+
+        agent = create_pandas_dataframe_agent(
+            llm,
+            df,
+            verbose=True,
+            allow_dangerous_code=True,
+        )
+
+        agent.handle_parsing_errors = True
+
+        answer = agent.invoke(user_question)
+
+        st.write(answer["output"])
+    except Exception as error:
+        print(f"Error Occurred, Details : {error}")
+
+
+if __name__ == "__main__":
+    main()
+
+
+
+in the requirements.txt, add the following
+
+pandas
+numpy
+streamlit
+
+
+pip install -r requirements.txt
+
+
+copy the hr-employees-attritions-internet.csv file to the use cases folder
+
+
+in the terminal,
+
+
+cd usecases
+
+streamlit run use-case-2.py
+
+
+Give me the breakup of the number of travelers and non-travelers
+
+give the average tenure of people who resigned and people who did not
+
+is tenure in the company a good trigger for resignation? what's the degree of correlation?
+
+which are the attributes that contribute most of people resigning?
+
+are there more males or females?
+
+
+
+Exercise:
+
+    - ask the application to list out males and female employees by department
+    
+    - how many female employees working in sales department?
+    
+    
+
+
+
+https://medium.com/the-ai-forum/which-vector-database-should-you-use-choosing-the-best-one-for-your-needs-5108ec7ba133
+
+
+
+
+
+RAG Basics 
+
+
+create a folder named "rag" and add the downloaded TXT files from lc-training data 
+
+modify requirements.txt
+
+unstructured
+faiss-cpu
+
+pip install in the terminal
+
+
+
+
+
+create a file named "rag-basics-1.ipynb" and markdown to Document Loaders
+
+
+from langchain.document_loaders import UnstructuredURLLoader
+
+
+urls = [
+    "https://paulgraham.com/when.html"
+]
+
+
+loader = UnstructuredURLLoader(urls)
+
+
+
+data = loader.load()
+
+
+
+print(len(data))
+
+
+print(data[0].metadata)
+
+print(data[0].page_content)
+
+
+
+
+
+create a file named "rag-basics-2.ipynb" and markdown to Text Splitters
+
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+
+with open("./when.txt") as f:
+    content = f.read()
+    
+print(f"You have {len([content])} Document!")
+
+
+
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size = 150,
+    chunk_overlap = 20
+)
+
+texts = text_splitter.create_documents([content])
+
+
+
+
+print(f"Now you have {len(texts)} Documents after they're chunked!")
+
+
+
+print("Preview ...")
+
+print(texts[0].page_content, "\n")
+print("*********")
+print(texts[1].page_content)
+
+
+
+
+create a file named "rag-basics-3.ipynb" and markdown to Document Loaders, Text Splitters, Vector Store and Embeddings
+
+
+from langchain.document_loaders import TextLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.vectorstores import FAISS
+from langchain.embeddings import OpenAIEmbeddings
+
+
+
+loader = TextLoader("./work.txt")
+documents = loader.load()
+
+
+
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size = 1000,
+    chunk_overlap = 500
+)
+
+texts = text_splitter.split_documents(documents)
+
+
+
+
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+openai_api_key = os.environ["OPENAI_API_KEY"]
+
+
+
+
+embeddings = OpenAIEmbeddings(openai_api_key = openai_api_key)
+
+
+
+
+
+database = FAISS.from_documents(texts, embeddings)
+
+
+
+
+
+retriever = database.as_retriever()
+
+
+
+
+
+relevant_documents = retriever.get_relevant_documents(
+    "what kind of messages author wanted to convey?"
+)
+
+
+
+for x in relevant_documents[:2]:
+    print(x.page_content[:200])
+    print("\n\n")
+    
+    
+    
+    
+relevant_documents = retriever.get_relevant_documents(
+    "what types of things did the author want to build?"
+)
+
+
+
+print("\n\n".join([x.page_content[:200] for x in relevant_documents[:2]]))
+
+
+
+
+RAG Case Study 1
+
+
+in the terminal window,
+
+docker info
+
+docker images
+
+cd \lc-demonstrations
+
+md qdrantstorage
+
+docker run -d -t -p 6333:6333 --name qdrant -v ./qdrantstorage:/qdrant/storage qdrant/qdrant
+
+docker ps
+
+docker logs <2-character-container-id>
+
+open the browser ->
+
+    http://localhost:6333/dashboard
+    
+if any index exists, clean them up ...
+
+
+
+copy movies.csv from lc-training-data folder to rag folder of lc-demonstrations
+
+open requirements.txt and add the following package references
+
+langchain-qdrant
+qdrant-client
+
+in the terminal window,
+
+pip install -r requirements.txt
+
+
+create a file named "casestudy-1.ipynb" and markdown to RAG Casestudy (CSV)
+
+
+import os
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain.document_loaders.csv_loader import CSVLoader
+from langchain.vectorstores import Qdrant
+from langchain.indexes import VectorstoreIndexCreator
+from langchain.chains import RetrievalQA
+
+
+
+
+loader = CSVLoader(file_path='./movies.csv',
+                   source_column='original_title',
+                   encoding='utf-8',
+                   csv_args={'delimiter': ',', 'fieldnames': ['id', 'original_language', 'original_title', 'popularity', 'release_date', 'vote_average', 'vote_count', 'genre', 'overview', 'revenue', 'runtime', 'tagline']})
+
+data = loader.load()
+
+
+
+
+print('Loaded %s movies' % len(data))
+
+
+
+
+openai_api_key = os.environ["OPENAI_API_KEY"]
+model_name = "gpt-3.5-turbo-0125"
+embedding_model_name = "text-embedding-3-large"
+
+embeddings = OpenAIEmbeddings(
+    model=embedding_model_name,
+    openai_api_key=openai_api_key
+)
+
+llm = ChatOpenAI(
+    model=model_name,
+    openai_api_key=openai_api_key,
+    temperature=0.1,
+    max_tokens=1000
+)
+
+
+
+url = "http://localhost:6333"
+
+qdrant = Qdrant.from_documents(
+    data,
+    embeddings,
+    url=url,
+    prefer_grpc=False,
+    collection_name="my_movies",
+)
+
+
+ectorstore = qdrant
+
+query = "Can you suggest similar movies to The Matrix?"
+
+query_results = qdrant.similarity_search(query)
+
+for doc in query_results:
+    print(doc.metadata['source'])
+    
+    
+index_creator = VectorstoreIndexCreator(embedding=embeddings, vectorstore_cls=Qdrant)
+docsearch = index_creator.from_loaders([loader])
+
+
+
+chain = RetrievalQA.from_chain_type(llm=llm,
+                                    chain_type="stuff",
+                                    retriever=docsearch.vectorstore.as_retriever(),
+                                    input_key="question",
+                                    return_source_documents=True)
+
+query = "Do you have a column called popularity?"
+response = chain.invoke({"question": query})
+
+print(response['result'])
+
+
+
+print(response['source_documents'])
+
+
+
+
+query = """If the popularity score is defined as a higher value being a more popular movie,
+what is the name of the most popular movie in the data provided?"""
+
+response = chain.invoke({"question": query})
+
+print(response['result'])
+
+
+
+print(response['source_documents'])
+
+
+pcsk_goRuP_T8gs5J9weqBJgpiyWL4ErJbDqrddNzvPmX5qfsSLKC18FMNSYU6iANrs3ksF6eB
+
+
+
+
+
+create a file named "pre-processing.py" and paste the following content
+
+
+from langchain_openai import OpenAIEmbeddings
+from pypdf import PdfReader
+from langchain.schema import Document
+from langchain_pinecone import PineconeVectorStore
+from dotenv import load_dotenv
+
+import os
+
+
+def get_pdf_text(pdf_document):
+    text = ""
+
+    pdf_reader = PdfReader(pdf_document)
+    for page in pdf_reader.pages:
+        text += page.extract_text()
+
+    return text
+
+
+def create_documents(pdf_files):
+    documents = []
+
+    for file in pdf_files:
+        chunks = get_pdf_text(file)
+
+        documents.append(
+            Document(
+                page_content=chunks,
+                metadata={
+                    "source": file,
+                    "type": "PDF",
+                    "owner": "Ramkumar JD"
+                }
+            )
+        )
+
+    return documents
+
+
+def create_embeddings():
+    embeddings = OpenAIEmbeddings(
+        model="text-embedding-3-large"
+    )
+
+    return embeddings
+
+
+def push_documents_to_pinecone(index_name, embeddings, documents):
+    vector_store = PineconeVectorStore(
+        index_name=index_name,
+        embedding=embeddings
+    )
+
+    vector_store.add_documents(documents)
+
+
+def main():
+    try:
+        load_dotenv()
+
+        index_name = "wajeeth-rajeev-ram-index"
+        directory_path = "./Docs"
+        files = os.listdir(directory_path)
+        pdf_files = []
+
+        for file in files:
+            pdf_file = directory_path + "/" + file
+            pdf_files.append(pdf_file)
+
+            print(f"Processing Required ... PDF Document {pdf_file} ...")
+
+        documents = create_documents(pdf_files)
+        embeddings = create_embeddings()
+
+        push_documents_to_pinecone(index_name, embeddings, documents)
+
+        print("Vector Embeddings are successfully Processed into the Vector Database ...")
+    except Exception as error:
+        print(f"Error Occurred, Details : {error}")
+
+
+if __name__ == "__main__":
+    main()
+
+requirements.txt changes
+
+
+langchain-pinecone
+pinecone-client
+
+install all dependency packages using pip in the terminal
+
+
+open the .env file and add pinecone_api_key ...
+
+
+
+
+
+
+create a file named "test-pre-processing.py" and paste the following contnet
+
+
+from dotenv import load_dotenv
+from langchain_pinecone import PineconeVectorStore
+from langchain_openai import OpenAIEmbeddings
+
+
+def create_embeddings():
+    embeddings = OpenAIEmbeddings(
+        model="text-embedding-3-large"
+    )
+
+    return embeddings
+
+
+def search_similar_documents(query, no_of_documents, index_name, embeddings):
+    vector_store = PineconeVectorStore(
+        index_name=index_name,
+        embedding=embeddings
+    )
+
+    similar_documents = vector_store.similarity_search(
+        query, k=no_of_documents)
+
+    return similar_documents
+
+
+def main():
+    try:
+        load_dotenv()
+
+        index_name = "ramkumar-resumes"
+        query = """
+            Experienced Candidates with Embedded Systems
+            
+            Requirements:
+            
+            Bachelors Degree in Computer Science
+            At least Five years of Working Experience in Embedded Systems
+            Understanding of Computer Architecture, Programming Languages and Interfacing Technologies 
+        """
+
+        embeddings = create_embeddings()
+        no_of_documents = 2
+
+        relevant_documents = search_similar_documents(
+            query, no_of_documents, index_name, embeddings)
+
+        for doc_index in range(len(relevant_documents)):
+            document = relevant_documents[doc_index]
+
+            print(document.metadata["source"])
+            print(document.page_content)
+            print("\n")
+    except Exception as error:
+        print(f"Error Occurred, Details : {error}")
+
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+rag-hr-ui.py
+
+
+from dotenv import load_dotenv
+from langchain_pinecone import PineconeVectorStore
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain.chains.summarize import load_summarize_chain
+import streamlit as st
+import os
+
+
+def create_embeddings():
+    embeddings = OpenAIEmbeddings(
+        model="text-embedding-3-large"
+    )
+
+    return embeddings
+
+
+def search_similar_documents(query, no_of_documents, index_name, embeddings):
+    vector_store = PineconeVectorStore(
+        index_name=index_name,
+        embedding=embeddings
+    )
+
+    similar_documents = vector_store.similarity_search(
+        query, k=no_of_documents)
+
+    return similar_documents
+
+
+def get_summary_from_llm(current_document):
+    load_dotenv()
+
+    openai_api_key = os.environ["OPENAI_API_KEY"]
+
+    llm = ChatOpenAI(
+        temperature=0,
+        max_tokens=2000,
+        openai_api_key=openai_api_key
+    )
+
+    chain = load_summarize_chain(llm, chain_type="map_reduce")
+    summary = chain.run([current_document])
+
+    return summary
+
+
+def main():
+    try:
+        load_dotenv()
+        
+        index_name = "ramkumar-resumes"
+
+        st.set_page_config(page_title="Resume Screening Assistant")
+        st.title("Resume Screening AI Assistant")
+        st.subheader(
+            """
+            This AI Assistant would help you to screen available resumes that have been indexed.
+            """
+        )
+
+        job_description = st.text_area(
+            "Please enter or paste your Job Description ...",
+            key="1",
+            height=200
+        )
+
+        document_count = st.text_input(
+            "No. Of Matching Resume(s) to be shown ...")
+
+        submit = st.button("Analyze")
+
+        if submit:
+            embeddings = create_embeddings()
+            relevant_documents = search_similar_documents(
+                job_description,
+                int(document_count),
+                index_name,
+                embeddings
+            )
+
+            for document_index in range(len(relevant_documents)):
+                st.subheader(f"{str(document_index+1)} Document ...")
+
+                file_name = "** FILE **" + \
+                    relevant_documents[document_index].metadata["source"]
+
+                st.write(file_name)
+
+                with st.expander("Show me Summary ..."):
+                    summary = get_summary_from_llm(
+                        relevant_documents[document_index])
+
+                    st.write("**** SUMMARY ****" + summary)
+    except Exception as error:
+        print(f"Error Occurred, Details : {error}")
+
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+
+prompt_template="""
+Use the following piece of context to answer the question asked.
+Please try to provide the answer only based on the context.
+Do not use any other sources of information.
+If you do not know the answer, please respond to say that I do not know. 
+
+{context}
+Question:{question}
+
+Helpful Answers:
+ """
+ 
+prompt=PromptTemplate(template=prompt_template,input_variables=["context","question"])
+
+
+chain = RetrievalQA.from_chain_type(llm=llm,
+                                    chain_type="stuff",
+                                    retriever=docsearch.vectorstore.as_retriever(),
+                                    input_key="question",
+                                    return_source_documents=True,
+                                    chain_type_kwargs={"prompt": prompt
+                                                       })
+
+query = "Do you have a column called popularity?"
+response = chain.invoke({"question": query})
+
+print(response['result'])
+
+
+
+
+
+Day 3
+
+
+
+cd langflow          
+dir                  
+cd docker_example    
+cls                  
+docker compose pull  
+docker images        
+docker compose up -d 
+docker ps            
+docker logs 76       
+                     
+                     
+                     
+You're a smart pirate in the Atlantic Ocean.
+
+Answer the question based on your role.
+
+{input}            
+
+
+
+
+curl -X POST "http://localhost:7860/api/v1/run/xxxxxx?stream=false" -H "Content-Type: application/json" -d "{\"input_value\": \"message\", \"output_type\": \"chat\",  \"input_type\": \"chat\"}"
+
+
+
+
+
+
+Use the following piece of context to answer the question asked.
+Please try to provide the answer only based on the context.
+Do not use any other sources of information.
+If you do not know the answer, please respond to say that I do not know. 
+
+{context}
+Question:{question}
+
+Helpful Answers:
+
+
+
+
+Day 3
+
+
+create a file named "vision-model.ipynb" and mark down to Vision MMM
+
+import os
+import base64
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+
+
+load_dotenv()
+
+openai_api_key = os.environ["OPENAI_API_KEY"]
+model_name = "gpt-4o"
+llm = ChatOpenAI(
+    model = model_name,
+    openai_api_key = openai_api_key,
+    temperature = 1,
+    max_tokens = 1000
+)
+
+
+
+def encode_image(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
+
+image_path = "./USMortgageRate.png"
+base64_image = encode_image(image_path)
+
+message = [
+    {
+        "role": "system",
+        "content": "You are a helpful assistant that responsds in markdown, you're analyst who understands different types of graphs and charts."
+    },
+    {
+        "role": "user",
+        "content": [
+            {
+                "type": "text",
+                "text": "Describe the following image as an alternative text"
+            },
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/png;base64,{base64_image}"
+                }
+            }
+        ]
+    }
+]
+
+
+
+
+
+
+response_message = llm.invoke(message)
+
+
+
+print(response_message.content)
+
+
+
+
+Agentic RAG
+
+
+- create a folder named "agentic-rag"
+
+and create a file named "use-case-1.ipynb" and mark down to ### Agentic RAG and Tools
+
+
+in the requirements.txt add 
+
+arxiv
+wikipedia
+
+package and install using pip in the terminal
+
+from langchain_community.tools import WikipediaQueryRun
+from langchain_community.utilities import WikipediaAPIWrapper
+
+
+api_wrapper=WikipediaAPIWrapper(top_k_results=1,doc_content_chars_max=200)
+wiki=WikipediaQueryRun(api_wrapper=api_wrapper)
+
+
+
+
+
+
+
+wiki.name
+
+
+from langchain_community.document_loaders import WebBaseLoader
+from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+loader=WebBaseLoader("https://docs.smith.langchain.com/")
+docs=loader.load()
+documents=RecursiveCharacterTextSplitter(chunk_size=1000,chunk_overlap=200).split_documents(docs)
+vectordb=FAISS.from_documents(documents,OpenAIEmbeddings())
+retriever=vectordb.as_retriever()
+retriever
+
+
+
+
+from langchain.tools.retriever import create_retriever_tool
+retriever_tool=create_retriever_tool(retriever,"langsmith_search",
+                      "Search for information about LangSmith. For any questions about LangSmith, you must use this tool!")
+					    
+retriever_tool.name
+
+
+
+
+## Arxiv Tool
+from langchain_community.utilities import ArxivAPIWrapper
+from langchain_community.tools import ArxivQueryRun
+
+arxiv_wrapper=ArxivAPIWrapper(top_k_results=1, doc_content_chars_max=200)
+arxiv=ArxivQueryRun(api_wrapper=arxiv_wrapper)
+arxiv.name
+
+
+tools=[wiki,arxiv,retriever_tool]
+
+
+tools
+
+
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+import os
+
+
+load_dotenv()
+os.environ['OPENAI_API_KEY']=os.getenv("OPENAI_API_KEY")
+llm = ChatOpenAI(model="gpt-3.5-turbo-0125", temperature=0)
+
+
+
+from langchain import hub
+# Get the prompt to use - you can modify this!
+prompt = hub.pull("hwchase17/openai-functions-agent")
+prompt.messages
+
+
+
+
+from langchain.agents import create_openai_tools_agent
+agent=create_openai_tools_agent(llm,tools,prompt)
+
+
+from langchain.agents import AgentExecutor
+
+agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+agent_executor
+
+
+
+
+
+agent_executor.invoke({"input":"Tell me about Langsmith"})
+
+
+
+agent_executor.invoke({"input":"What's the paper 1605.08386 about?"})
+
+
+
+
+
+create a new folder named "api-integration" and file named "rest-api-calls.ipynb" and mark down to REST API Integration with LLMs
+
+
+
+import os
+
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from langchain.chains import APIChain
+
+
+
+
+load_dotenv()
+
+model_name = "gpt-4"
+openai_api_key = os.environ["OPENAI_API_KEY"]
+
+llm = ChatOpenAI(
+    model_name=model_name,
+    temperature=0,
+    max_tokens=1000,
+    openai_api_key=openai_api_key
+)
+
+
+
+
+api_documentation = """
+        
+        BASE URL: https://restcountries.com/
+        
+        API Documentation:
+        
+        The API Endpoint /v3.1/name/{name} Used to get details about a country. All URL parameters are listed below.
+        
+          - name: Name of the Country - Ex: India, France, Italy
+        
+        The API Endpoint /v3.1/currency/{currency} Used to get currency information.
+        
+          - currency: COP, GBP, USD
+        
+        """
+
+
+
+chain = APIChain.from_llm_and_api_docs(
+    llm,
+    api_documentation,
+    verbose=True,
+    limit_to_domains=None
+)
+
+
+
+
+question = "Can you tell me information about France?"
+
+response = chain.invoke(question)
+
+
+print(response)
+
+
+question = "Can you tell me about the currency COP?"
+
+response = chain.invoke(question)
+
+        
+        
+        
+print(response)
+        
+
+
+create a folder named "memory" and a file named "memory-llms.ipynb"
+
+and markdown to Memory Support in LLMs
+
+
+
+import os
+
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from langchain import LLMChain
+from langchain.prompts import PromptTemplate
+from langchain.memory import ConversationBufferMemory
+
+
+
+
+load_dotenv()
+
+model_name = "gpt-4"
+openai_api_key = os.environ["OPENAI_API_KEY"]
+
+llm = ChatOpenAI(
+    model_name=model_name,
+    temperature=0,
+    max_tokens=1000,
+    openai_api_key=openai_api_key
+)
+
+
+
+
+template = """
+            You're a chatbot that is helpful.
+            Your goal is to help the user, but also make jokes.
+            Take what the user is saying and make a joke out of it along with the correct answer.
+            
+            {chat_history}
+            
+            Human: {human_input}
+            
+            Chatbot:
+        """
+        
+        
+        
+prompt = PromptTemplate(
+    input_variables=["chat_history", "human_input"],
+    template=template
+)
+
+
+
+
+memory = ConversationBufferMemory(memory_key="chat_history")
+
+llm_chain = LLMChain(
+    llm=llm,
+    prompt=prompt,
+    verbose=True,
+    memory=memory
+)
+
+
+
+
+
+response = llm_chain.predict(
+    human_input="Is a pear a fruit or a vegetable")
+
+print(response)
+
+
+
+response = llm_chain.predict(
+    human_input="What was one of the fruits i asked about earlier?")
+
+print(response)
+
+
+Evaluations
+
+
+create a folder named "evaluations" and file named "evaluate-llms.ipynb"
+
+and markdown to Evaluation of LLMs
+
+copy worked.txt into the evaluations folder, which can be obtained lc-training-data folder
+
+
+import os
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from langchain.prompts import PromptTemplate
+
+
+
+
+
+
+load_dotenv()
+
+model_name = "gpt-3.5-turbo-0125"
+openai_api_key = os.environ["OPENAI_API_KEY"]
+llm = ChatOpenAI(
+    model_name = model_name,
+    temperature = 0.1,
+    max_tokens = 2000,
+    openai_api_key = openai_api_key
+)
+
+
+
+
+
+
+from langchain.vectorstores import FAISS
+from langchain.chains import RetrievalQA
+from langchain.document_loaders import TextLoader
+from langchain.evaluation.qa import QAEvalChain
+from langchain_openai import OpenAIEmbeddings
+
+
+
+loader = TextLoader("./worked.txt")
+document = loader.load()
+
+print(f"You have now {len(document)} document!")
+print(f"Totally {len(document[0].page_content)} characters in the document!")
+
+
+
+
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+text_splitter = RecursiveCharacterTextSplitter(chunk_size = 3000, chunk_overlap = 400)
+documents = text_splitter.split_documents(document)
+
+
+
+embeddings = OpenAIEmbeddings(openai_api_key = openai_api_key)
+document_search = FAISS.from_documents(documents, embeddings)
+
+
+
+
+chain = RetrievalQA.from_chain_type(
+    llm=llm,
+    chain_type="stuff",
+    retriever=document_search.as_retriever(),
+    input_key="question")
+    
+    
+question_answers = [
+    {
+        "question": "which company sold the microcomputer kit that his friend built himself?",
+        "answer": "Heathkit"
+    },
+    {
+        "question": "what was the small city he talked about in the city that is the financial capital of USA?",
+        "answer": "Yorkville, NY"
+    }
+]
+
+
+predictions = chain.apply(question_answers)
+
+predictions
+
+
+evaluation_chain = QAEvalChain.from_llm(llm)
+
+
+
+
+
+graded_output = evaluation_chain.evaluate(
+    question_answers,
+    predictions,
+    question_key="question",
+    prediction_key="result",
+    answer_key="answer"
+)
+
+
+
+
+graded_output
+
+
+
+End-to-End Development with LangServer
+
+create a folder named "endtoend-langserve"
+
+modify the requirements.txt to add the following packages
+
+langserve[all]
+langchain-cli
+poetry
+
+
+in the terminal window, 
+
+cd endtoend-langserve
+
+langchain app new .
+
+
+
+in the terminal window,
+
+in the endtoend-langserve folder
+
+poetry add "langserve[all]" langchain-openai python-decouple
+
+    make sure that pyproject.toml is updated with
+
+    pydantic="*" in the tool poetry dependencies section
+
+
+open server.py and replace the following code with the existing code.
+
+
+from decouple import config
+from fastapi import FastAPI
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from langserve import add_routes
+
+
+app = FastAPI()
+
+model = ChatOpenAI(openai_api_key=config("OPENAI_API_KEY"))
+prompt = ChatPromptTemplate.from_template(
+    "Give me a summary about {topic} in a paragraph or less.")
+
+chain = prompt | model
+
+add_routes(app, chain, path="/openai")
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+
+add the following snippet to the openai initialization
+
+
+    model="gpt-3.5-turbo-0125",
+
+
+
+
+update the pyproject.toml dependencies to include the following
+
+httpx = "0.27.0"
+
+
+poetry lock --no-update
+
+poetry install
+
+langchain serve
+
+
+
+
+open server.py
+
+import os
+
+
+
+    host = os.environ["HOST"]
+    port = os.environ["PORT"]
+
+    uvicorn.run(app, host=host, port=port)
+
+
+Open Dockerfile, and update the last 3 lines with the following
+
+
+ARG PORT
+
+EXPOSE ${PORT:-8000}
+
+CMD exec uvicorn app.server:app --host 0.0.0.0 --port ${PORT:-8000}
+
+
+
+
+after you register with hub.docker.com ...
+
+in the terminal window,
+
+ensure that you're in endtoend-langserve folder
+
+
+
+docker build -t xxxxx/endtoend-lcdemo .
+
+
+docker login
+
+
+docker push xxxx/endtoend-lcdemo
+
+
+
+
+docker run -d -t -p 8000:8000 -e HOST=0.0.0.0 -e PORT=8000 -e OPENAI_API_KEY=YOUR_OPENAI_API_KEY --name lanchain-container xxxxxx/endtoend-lcdemo
+
+
+docker ps
+
+docker logs <container-id-2-characters>
+
+
+
+Ollama Hosting
+
+
+
+import torch
+
+torch.cuda.is_available()
+
+
+
+
+torch.cuda.mem_get_info()
+
+
+%pip install langchain langchain-core langchain-community langchain-ollama -qU
+
+
+
+
+from langchain_ollama import ChatOllama
+
+model_name = "mistral"
+llm = ChatOllama(
+    base_url="http://216.48.181.46:11438/",
+    temperature = 0,
+    max_tokens = 2000,
+    model = model_name
+)
+
+
+
+
+from langchain_core.messages import AIMessage, HumanMessage
+
+messages = [
+    AIMessage(content="You are a helpful assistant."),
+    HumanMessage(content = "I Love Programming!")
+]
+
+
+
+
+
+output = llm.invoke(messages)
+
+
+
+
+output.content
+
+
+
+
+
+from langchain.prompts import ChatPromptTemplate
+
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", "You are a helpful assistant."),
+        ("human", "{input}")
+    ]
+)
+
+chain = prompt | llm
+
+output = chain.invoke({"input": "I love programming!"})
+
+
+
+
+
+
+
+output.content
+
+
+
+
+
+
+from typing import List
+
+from langchain_core.tools import tool
+
+@tool
+def validate_user(user_id: int, addresses: List[str]) -> bool:
+  """
+  This routine validates user information using historical addresses
+
+  Args:
+
+    user_id (int): The User ID
+    addresses (List[str]): Previously living / stayed addresses as a list of strings
+  """
+
+  print(user_id)
+  print(address for address in addresses)
+
+  return True
+  
+  
+  
+  
+llm = ChatOllama(
+    temperature = 0,
+    max_tokens = 2000,
+    model = model_name,
+    verbose = True
+).bind_tools([validate_user])
+
+
+
+
+
+question = "Could you please validate the user 7349? They previuosly stayed in the fake street, MX, USA and malcome street, CA, USA"
+
+output = llm.invoke(question)
+
+
+
+
+
+
+output.tool_calls
+
+
+
+
+output.content
+
+
+output
+
+
+
+
+
+Case Study - 1 Ollama Hosting
+
+(Google Colab - CPU)
+
+%pip install transformers langdetect deep-translator torch torchvision torchaudio langchain langchain-community langchain-ollama gradio -q
+
+
+
+
+from langchain_ollama import ChatOllama
+from langchain.prompts import PromptTemplate
+
+
+
+template = """
+You're a native internal AI assistant. Help users with their important tasks, like a professor in a particular field.
+
+Query: {query}
+"""
+
+
+prompt = PromptTemplate(
+    input_variables = ["query"],
+    template = template
+)
+
+
+
+
+chain = prompt | llm
+
+
+
+
+from langdetect import detect
+from deep_translator import GoogleTranslator
+
+class Translation:
+  def __init__(self, text, destination):
+    self.text = text
+    self.destination = destination
+
+    try:
+      self.original = detect(self.text)
+    except Exception as error:
+      print(f"Error Occurred, Details : {error}")
+      self.original = "auto"
+
+  def translate(self):
+    translator = GoogleTranslator(source=self.original, target=self.destination)
+    translation = translator.translate(self.text)
+
+    return translation
+	
+import gradio as gr
+
+
+def reply(message, history):
+  txt = Translation(message, "en")
+
+  if txt.original == "en":
+    response = chain.invoke({
+        "query": message
+    })
+
+    return response
+  else:
+    translation = txt.translate()
+
+    response = chain.invoke({
+        "query": translation
+    })
+
+    t = Translation(response.content, txt.original)
+    final_response = t.translate()
+
+    return final_response
+
+
+question = "What is Deep Learning?"
+
+result = reply(question, history = [])
+
+
+
+result.content
+
+
+
+
+question = "ரியல் எஸ்டேட்டில் அதிக பணம் சம்பாதிப்பது எப்படி?"
+
+result = reply(question, history = [])
+
+result
+
+
+
+demo = gr.ChatInterface(fn=reply, title = "Multi-Lingual ChatBot")
+
+demo.launch(debug=False, share=True)
+
+
+create a folder named "voice-to-voice"
+
+and paste the following in requirements.txt
+
+audio-recorder-streamlit
+streamlit
+fastapi
+uvicorn
+python-dotenv
+datetime
+openai
+pathlib
+requests
+python-multipart
+
+
+create a file named "chatbot_function.py" and paste the following content
+
+import datetime
+from fastapi.responses import Response
+from openai import OpenAI
+import tempfile
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+openai_api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI()
+
+
+def speech_to_text_conversion(file_path):
+    """Converts audio format message to text using OpenAI's Whisper model."""
+    audio_file = open(
+        file_path, "rb")  # Opening the audio file in binary read mode
+    transcription = client.audio.transcriptions.create(
+        model="whisper-1",  # Model to use for transcription
+        file=audio_file  # Audio file to transcribe
+    )
+    return transcription.text
+
+
+def text_chat(text):
+    # Generate response using OpenAI
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Who won the world series in 2020?"},
+            {"role": "assistant",
+                "content": "The Los Angeles Dodgers won the World Series in 2020."},
+            {"role": "user", "content": text}
+        ])
+    return response.choices[0].message.content
+
+
+def text_to_speech_conversion(text):
+    """Converts text to audio format message using OpenAI's text-to-speech model - tts-1."""
+    if text:  # Check if converted_text is not empty
+        speech_file_path = datetime.datetime.now().strftime(
+            "%Y%m%d%H%M%S") + "_speech.webm"
+        # print("path--------->")
+
+        # Voice options : alloy, echo, fable, onyx, nova, and shimmer
+
+        # Models : tts-1, tts-1-hd. For real-time applications, the standard tts-1 model provides the lowest latency
+        # but at a lower quality than the tts-1-hd model. Due to the way the audio is generated,
+        # tts-1 is likely to generate content that has more static in certain situations than tts-1-hd.
+
+        response = client.audio.speech.create(
+            model="tts-1",  # Model to use for text-to-speech conversion
+            voice="fable",  # Voice to use for speech synthesis
+            input=text  # Text to convert to speech
+        )
+        '''response is binary data, when using strean_to_file function, it will write the binary data in a file'''
+        response.stream_to_file(
+            speech_file_path)  # Streaming synthesized speech to file
+        # Read the audio file as binary data
+        with open(speech_file_path, "rb") as audio_file:
+            audio_data = audio_file.read()
+        os.remove(speech_file_path)
+        return audio_data
+    else:
+        print("Error: converted_text is empty")
+
+
+
+
+create a file named "app.py" and paste the following content
+
+
+import streamlit as st
+from audio_recorder_streamlit import audio_recorder
+import tempfile
+import requests
+import chatbot_function
+
+
+st.title('Voice ChatBot')
+
+audio_bytes = audio_recorder(
+    text="Click to record",
+    recording_color="#e8b62c",
+    neutral_color="#6aa36f",
+    icon_name="microphone",
+    icon_size="3x",
+)
+
+if audio_bytes:
+    print(type(audio_bytes))
+
+    st.audio(audio_bytes, format="audio/wav")
+
+# Save audio to a temporary file
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_audio:
+        temp_audio.write(audio_bytes)
+        temp_audio_path = temp_audio.name
+
+    if st.button('Get Response'):
+        # Converting speech to text
+        converted_text_openai = chatbot_function.speech_to_text_conversion(
+            temp_audio_path)
+        print("Transcribed text", converted_text_openai)
+        st.write("Transcription:", converted_text_openai)
+        textmodel_response = chatbot_function.text_chat(
+            converted_text_openai)  # Generating actor's response
+        print("Response:", textmodel_response)
+        # Convert final text response to audio format and get the audio file path
+        audio_data = chatbot_function.text_to_speech_conversion(
+            textmodel_response)
+
+        # Creating temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmpfile:
+            # contents = await file.read()  # Reading file contents asynchronously
+            # Writing file contents to temporary file
+            tmpfile.write(audio_data)
+            tmpfile_path = tmpfile.name
+            st.write("Response:", textmodel_response)
+            st.audio(tmpfile_path)
+
+
+
+
+
+in the terminal window,
+
+ensure that you're in voice-to-voice folder
+
+streamlit run app.py
+
+
+
+
+https://2d20a877ac385962f7.gradio.live/
+
+
+
+Voice-To-Voice RAG Case Study ADVANCED with TTS/STT and Translation
+
+
+
+%pip install huggingface_hub gradio sentence-transformers langchain langchain-community langchain-ollama langchain-core arxiv -qU
+
+
+%pip install qdrant-client langchain-qdrant unstructured[pdf] unstructured poppler-utils tesseract webdataset -qU
+
+
+
+%pip install langdetect deep-translator transformers torch inflect edge-tts asyncio streaming-stt-nemo -qU
+
+
+
+
+import os
+import arxiv
+
+dir_path = "arxiv_papers"
+
+if not os.path.exists(dir_path):
+  os.makedirs(dir_path)
+
+search = arxiv.Search(
+    query = "LLM",
+    max_results = 10,
+    sort_by = arxiv.SortCriterion.LastUpdatedDate,
+    sort_order= arxiv.SortOrder.Descending
+)
+
+
+
+
+
+import time
+from urllib.error import HTTPError
+
+for paper in search.results():
+  while True:
+    try:
+      paper.download_pdf(dirpath=dir_path)
+      print(f"-> Paper ID {paper.get_short_id()} with the title {paper.title} is downloaded")
+      break
+    except FileNotFoundError:
+      print("File Not Found!")
+      break
+    except HTTPError:
+      print("Forbidden / HTTP Related Errors!")
+      break
+    except ConnectionResetError:
+      print("Connection Related Errors!")
+      time.sleep(5)
+	  
+	  
+
+
+
+
+from langchain.document_loaders import PyPDFLoader, DirectoryLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+dir_path = "arxiv_papers"
+loader = DirectoryLoader(dir_path, glob="*.pdf", loader_cls=PyPDFLoader)
+documents = loader.load()
+
+print("Total Number of Pages Loaded", len(documents))
+
+full_text = ''
+
+for document in documents:
+  full_text += document.page_content
+
+full_text = ' '.join(line for line in full_text.splitlines() if line)
+
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+paper_chunks = text_splitter.create_documents([full_text])
+
+
+
+
+
+
+!mkdir additional_documents
+
+
+
+
+additional_documents = []
+dir_path = "additional_documents"
+loader = DirectoryLoader(dir_path, glob="*.pdf", loader_cls=PyPDFLoader)
+additional_documents = loader.load()
+
+print("Total Number of Pages Loaded", len(additional_documents))
+
+additional_full_text = ''
+
+for additional_document in additional_documents:
+  additional_full_text += additional_document.page_content
+
+additional_full_text = ' '.join(line for line in additional_full_text.splitlines() if line)
+
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+additional_paper_chunks = text_splitter.create_documents([additional_full_text])
+
+
+
+
+
+
+total_documents = paper_chunks + additional_paper_chunks
+
+print(f"Total Number of Documents {len(total_documents)}")
+
+
+
+
+
+
+from langchain_ollama import OllamaEmbeddings
+from langchain_qdrant import Qdrant
+
+
+
+
+
+
+
+embedding_model_name = "nomic-embed-text"
+
+try:
+  embeddings = OllamaEmbeddings(model = embedding_model_name,)
+except Exception as error:
+  print(f"Error Occurred, Details : {error}")
+  
+  
+  
+
+
+
+
+vectordb = Qdrant.from_documents(
+    total_documents,
+    embeddings,
+    path="Qdrant_Persist",
+    collection_name="voice_assisted_documents"
+)
+
+
+
+
+
+
+
+from langchain.chains import RetrievalQA
+from langchain_ollama import ChatOllama
+
+retriever = vectordb.as_retriever()
+
+llm = ChatOllama(model="mistral")
+
+qa_chain = RetrievalQA.from_chain_type(
+    llm,
+    retriever=retriever,
+    chain_type = "stuff",
+    verbose=True)
+	
+	
+
+
+
+
+
+import random
+import tempfile
+import asyncio
+from streaming_stt_nemo import Model
+import edge_tts
+
+
+
+
+
+default_lang = "en"
+engines = {
+    default_lang: Model(default_lang)
+}
+
+
+
+
+
+def transcribe(audio):
+  """
+  Transcribes the Audio File to Text
+  """
+
+  lang = "en"
+  model = engines[lang]
+  text = model.stt_file(audio)[0]
+
+  return text
+  
+  
+  
+
+
+
+def format_prompt(message, history):
+  """
+  Formats the prompt for the LLM
+  """
+
+  prompt = ""
+
+  for user_prompt, bot_response in history:
+    prompt += f"[INST]: {user_prompt} [/INST]\nAI: {bot_response}\n"
+
+  prompt += f"[INST] {message}\n [/INST]:"
+
+  return prompt
+  
+  
+
+
+
+def generate(prompt, history, temperature = 0.9, max_new_tokens = 256, top_p = 0.95, repetition_penalty = 1.0):
+  """
+  Generates the response from the LLM
+  """
+
+  temperature = float(temperature)
+
+  if temperature < 1e-2:
+    temperature = 1e-2
+
+  top_p = float(top_p)
+
+  generate_kwargs = dict(
+      temperature=temperature,
+      max_new_tokens=max_new_tokens,
+      top_p=top_p,
+      repetition_penalty=repetition_penalty,
+      do_sample = True,
+      seed = random.randint(0, 10**7)
+  )
+
+  formatted_prompt = format_prompt(prompt, history)
+
+  search_result = qa_chain.run(prompt)
+
+  if search_result:
+    yield search_result
+  else:
+    yield "Sorry, I could not find any relevant information!"
+	
+
+
+
+from langdetect import detect
+from deep_translator import GoogleTranslator
+
+class Translation:
+  def __init__(self, text, destination):
+    self.text = text
+    self.destination = destination
+
+    try:
+      self.original = detect(self.text)
+    except Exception as error:
+      self.original = "auto"
+
+  def translate(self):
+    translator = GoogleTranslator(source=self.original, target=self.destination)
+    translated_text = translator.translate(self.text)
+
+    return translated_text
+	
+	
+
+
+
+def reply(message, history):
+  text = Translation(message, "en")
+
+  if text.original == "en":
+    response = generate(text.text, history)
+
+    return response
+  else:
+    translation = text.translate()
+    response = generate(translation, history)
+
+    t = Translation(response, text.original)
+    final_response = t.translate()
+
+    return final_response
+	
+	
+
+
+
+
+async def respond(audio):
+  """
+  Handles the Full Pipeline:
+    Transcribe
+    Generate Response
+    TTS
+  """
+
+  try:
+    user_text = transcribe(audio)
+    print(f"User Text : {user_text}")
+
+    history = []
+    final_response = ""
+
+    response_generator = generate(user_text, history)
+    response_text = ""
+
+    for response in response_generator:
+      response_text += response
+
+    print(f"Final Response : {response_text}")
+
+    translation = Translation(response_text, "tamil")
+    translated_text = translation.translate()
+
+    print(translated_text)
+
+    communicate = edge_tts.Communicate(response_text)
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
+      tmp_path = tmp_file.name
+
+      await communicate.save(tmp_path)
+
+      print("Audio Output File Saved!")
+
+    return response_text, tmp_path, translated_text
+  except Exception as error:
+    print(f"Error Occurred in Processing ... {error}")
+    raise error
+	
+	
+
+
+
+
+customCSS = """
+#component-7 {
+  height: 800px;
+  overflow: auto;
+  flex-grow: 1;
+}
+"""
+
+
+
+
+import gradio as gr
+
+
+
+
+
+additional_settings = [
+    gr.Slider(
+        label = "Temperature",
+        value = 0.9,
+        minimum = 0.0,
+        maximum = 1.0,
+        step = 0.05,
+        interactive=True,
+        info = "Higher values produce more diverse outputs"
+    ),
+    gr.Slider(
+        label = "Max New Tokens",
+        value = 512,
+        minimum = 64,
+        maximum = 512,
+        step = 64,
+        interactive=True,
+        info = "Maximum Number of New Tokens"
+    ),
+    gr.Slider(
+        label = "Top-P (Sampling)",
+        value = 0.9,
+        minimum = 0.0,
+        maximum = 1.0,
+        step = 0.05,
+        interactive=True,
+        info = "Higher Values Sample More Low-Probability Tokens"
+    ),
+    gr.Slider(
+        label = "Repetition Penalty",
+        value = 1.2,
+        minimum = 1.0,
+        maximum = 2.0,
+        step = 0.05,
+        interactive=True,
+        info = "Penalize Repeated Tokens"
+    )
+]
+
+
+
+
+with gr.Blocks(css=customCSS) as demo:
+  gr.Markdown("REDIVAC GPT - VOICE ASSISTANT")
+  gr.Markdown("This POC is built to showcase show LLMs work on-premises and with Advanced RAG Features")
+
+  with gr.Row():
+    input_audio = gr.Audio(label = "REDIVAC VOICE",
+                           sources = "microphone",
+                           type = "filepath",
+                           waveform_options=False)
+
+    output_text = gr.Textbox(label = "Response Text")
+    output_audio = gr.Audio(label = "Response Audio",
+                            type = "filepath",
+                            interactive = False,
+                            autoplay=True,
+                            elem_classes="audio")
+    translated_text = gr.Textbox(label = "Translated Response Text")
+
+    gr.Interface(fn=respond,
+                 inputs = [input_audio],
+                 outputs = [output_text, output_audio, translated_text],
+                 live = True)
+
+  with gr.Accordion("Settings", open=False):
+    gr.Markdown("## Advanced Settings")
+
+    for slider in additional_settings:
+      slider.render()
+	  
+	  
+
+
+
+
+demo.queue().launch(debug=True, share=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+Day 4
+
+
+
+
+Regenerated OpenAI API Key
+
+
+create a folder named "observability" and add a new file named "llmops-langsmith.ipynb"
+
+open .env file
+
+add a new key
+
+LANGCHAIN_API_KEY=xxxxxx
+
+
+open requirements.txt and add new package
+
+langsmith
+
+in the terminal 
+
+pip to install  new packages
+
+
+import os
+
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langsmith import Client
+
+
+
+
+load_dotenv()
+
+model_name = "gpt-3.5-turbo-0125"
+openai_api_key = os.environ["OPENAI_API_KEY"]
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+
+llm = ChatOpenAI(
+    model=model_name,
+    temperature=0.1,
+    max_tokens=2000,
+    openai_api_key=openai_api_key
+)
+
+
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", "You're an assistant who responds to user requests using context."),
+        ("user", "Question: {question} \n Context: {context}")
+    ]
+)
+
+output_parser = StrOutputParser()
+
+chain = prompt | llm | output_parser
+
+
+
+questions = [
+    "What is Games of Thrones?",
+    "Who are the main characters of Games of Thrones?",
+    "Who dies in the Games of Thrones?"
+]
+
+
+
+
+
+
+context = """
+    A Game of Thrones takes place over the course of one year on or near the fictional continent of Westeros. The story begins when King Robert visits the northern castle Winterfell to ask Ned Stark to be his right-hand assistant, or Hand of the King. The previous Hand, Jon Arryn, died under suspicious circumstances. Robert comes with his queen, Cersei Lannister, and his retinue, which includes a number of Lannisters. Just after the royal party arrives, Ned’s wife, Catelyn, receives a message claiming that the Lannister family was responsible for the death of the former Hand. She tells Ned, who accepts the position as Hand in order to protect Robert from the Lannisters. Ned’s son Bran then discovers Cersei Lannister and her brother Jaime Lannister having sex, and Jaime pushes Bran from a window to silence him. Everyone thinks Bran simply fell while climbing around the castle.
+    While Bran is still unconscious, Ned leaves Winterfell and rides south with Robert. The same day, Ned’s bastard son, Jon, leaves to serve at the Wall, a massive structure that protects Westeros from the wilderness of the far North. The group of men sworn to defend the Wall, the Night’s Watch, have been receiving reports of strange creatures and have been losing men with increasing frequency. Tyrion Lannister, a little person who is brother to Cersei and Jaime, travels with Jon to the Wall to see the massive structure. Meanwhile, on a continent east of Westeros, Daenerys Targaryen marries the warlord Khal Drogo, one of the leaders of the Dothraki people. Daenerys and her brother Viserys are the last surviving members of the family Robert defeated to become king, the Targaryens. They are an old family said to be descended from dragons, and Viserys thinks with Khal Drogo’s army he can retake the throne. A knight named Ser Jorah Mormont, exiled by Ned Stark, pledges he will help. Daenerys receives three dragon eggs as a wedding gift and becomes immediately fascinated by them.
+    On the trip south to the capital, called King’s Landing, Robert and Cersei’s son, Joffrey, and Ned’s daughter Sansa, who everyone presumes will be married one day, go for a walk. When Joffrey sees Arya, Ned’s other daughter and sister to Sansa, practicing her swordfighting with a boy, he decides to show them he’s a better fighter. As pets, all of the Stark children have direwolf pups, a wolf breed larger than normal wolves that also happens to be the symbol of the Stark house, and Arya’s wolf injures Joffrey defending her. Though Sansa knows Joffrey instigated the fight, she will not tell on Joffrey because she’s in love with him. As punishment, Cersei wants Arya’s wolf killed, but since it ran away after hurting Joffrey, Cersei demands that Ned kill Sansa’s wolf instead. Meanwhile, an assassin tries to kill the unconscious Bran and fails. Ned finally reaches King’s Landing to find that Catelyn has sailed to the city in secret to discover the truth about the assassin. She has the dagger the assassin used, and after examining it, Catelyn’s childhood friend Littlefinger recognizes it as belonging to Tyrion Lannister. Ned tells Catelyn he will try to determine who killed the former Hand, Jon Arryn, and who tried to kill Bran. Bran finally wakes from his coma, but he doesn’t remember how he fell. Tyrion visits him on his way south from the Wall to deliver a greeting from Jon. Tyrion continues south as Catelyn starts back north, and when their paths cross Catelyn has him seized for trying to kill Bran.
+    In King’s Landing, Ned slowly begins to unravel the mystery of why the previous Hand was killed. He knows it has to do with something the Hand learned about King Robert’s children. Through a spy, Robert learns that Daenerys Targaryen is pregnant. He wants to assassinate her because he fears she and her son will one day challenge Robert’s right to the throne. Disgusted with Robert’s plan, Ned resigns as Hand. That night, Jaime and his men confront Ned about Tyrion’s capture. Jaime kills Ned’s men and Ned breaks his leg while fighting. The following day, Robert reinstates Ned as Hand. While Robert is gone hunting, Ned orders the execution of a rogue knight loyal to the Lannister family who has been pillaging villages. Further north, Catelyn takes Tyrion to her sister Lysa Arryn’s castle, the Eyrie, which is in a mountainous area called The Vale. Lysa accuses Tyrion of arranging the murder of both Jon Arryn and Bran. Tyrion denies the accusations and demands a trial by combat. A knight fights on Lysa’s behalf, and a mercenary fights on Tyrion’s behalf. Tyrion’s mercenary wins. While Tyrion rides from the Eyrie, a group of mountain clansmen try to kill him, but he promises to help them take The Vale and convinces them to join him.
+    In the east, as Khal Drogo and his Dothraki followers head back to Vaes Dothrak, their capital, Viserys becomes increasingly angry that Drogo has not provided him with an army with which to wage war on Westeros. During a feast he attacks Daenerys in a rage, and Khal Drogo has Viserys killed by dumping molten gold on his head. In King’s Landing, Ned has figured out why the Hand was killed: he had discovered that Joffrey was not really Robert’s child but was actually the product of Cersei’s sexual relationship with her brother, Jaime. Robert doesn’t know the truth. Robert is mortally wounded in a hunt, and before he dies, he names Ned the Protector of the Realm, essentially an interim king, until Joffrey comes of age. Ned does not tell Robert that he knows Joffrey is not the true heir, since he is the son of Cersei and Jaime. Ned asks Littlefinger’s help to install the true heir, Robert’s brother Stannis, as the king, and Littlefinger agrees. But when Ned confronts the Lannisters, saying that Joffrey is not the true heir and expecting Littlefinger’s support, Littlefinger betrays him, and Cersei imprisons Ned for treason. Meanwhile, north of the Wall, Jon and other men have discovered two strange dead bodies. They bring the bodies back for examination, and late at night, one of the bodies comes to life and tries to kill Jon’s commander. Jon and his direwolf fight off the undead body, and Jon kills the creature with fire.
+    After Ned’s capture, Arya escapes the castle in King’s Landing and Cersei holds Sansa hostage (she says she is holding Sansa for her own protection). Tywin Lannister, father to Tyrion, Cersei, and Jaime, wages war with Catelyn and her son, Robb Stark. Shrewdly outmaneuvering Tywin, Robb manages to defeat a portion of the Lannister army and capture Jaime. In King’s Landing, Joffrey, who is considered Robert’s heir, is crowned King. In the hopes that he can prevent his daughters being harmed, Ned confesses publicly to treason, and Joffrey has him executed while Sansa watches. Arya is in the crowd, though nobody knows it.
+"""
+
+
+
+
+correct_answers = [
+    "A Game of Thrones is the first novel in A Song of Ice and Fire, a series of fantasy novels by American author George R. R. Martin.",
+    "Here are the main character names mentioned as per the context - Ned Stark, Robert Baratheon, Jon Arryn,  \
+        Cersei Lannister, Jaime Lannister, Bran Stark, Catelyn Stark, Jon Snow, Tyrion Lannister, Daenerys Targaryen, \
+        Viserys Targaryen, Khal Drogo, Ser Jorah Mormont, Joffrey Baratheon, Sansa Stark, Arya Stark, Petyr Baelish, \
+        Lysa Arryn, Stannis Baratheon, Tywin Lannister, Robb Stark",
+    "Based on the context, these characters die - Jon Arryn, Viserys Targaryen, Robert Baratheon, Ned Stark",
+]
+
+
+
+
+
+client = Client()
+
+inputs = [
+    (questions[0], correct_answers[0]),
+    (questions[1], correct_answers[1]),
+    (questions[2], correct_answers[2])
+]
+
+dataset_name = "WAR-R-Evaluations"
+dataset = client.create_dataset(
+    dataset_name=dataset_name,
+    description="Questions and Answers for Evaluations"
+)
+
+for input_prompt, output_answer in inputs:
+    client.create_example(
+        inputs={"question": input_prompt},
+        outputs={"answer": output_answer},
+        dataset_id=dataset.id
+    )
+    
+    
+    
+    
+
+
+for question in questions:
+    print(chain.invoke({
+        "question": question,
+        "context": context
+    }))
+
+    print("\n")
+
+
+
+Multi-Agents Framework
+
+create a folder named "multi-agents"
+
+and add a new file "requirements.txt" and paste the following content
+
+python-dotenv
+crewai[tools]
+langchain
+langchain-community
+langchain-core
+
+
+install  all dependency packages using pip in the terminal
+
+create a file named ".env" in the multi-agents folder
+
+SERPER_API_KEY=YOUR_SERPER_API_KEY
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY
+
+
+
+close all vs code and terminal windows
+
+open a new terminal window
+
+cd \lc-demonstrations\multi-agents
+
+python -m venv env
+
+env\scripts\activate
+
+pip install -r requirements.txt
+
+in the new terminal window,
+
+multipass launch --name trainingvmv2 --cpus 4 --memory 8G --disk 16G jammy
+
+
+multipass list
+
+multipass shell trainingvmv2
+
+in the vm shell,
+
+sudo apt update
+
+sudo DEBIAN_FRONTEND=noninteractive apt-get -yq install make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev
+
+
+sudo apt nstall -y python3.10-venv
+
+
+
+mkdir multi-agents
+
+cd multi-agents
+
+python3 -m venv env
+
+source ./env/bin/activate
+
+nano requirements.txt
+
+right click mouse and paste the following
+
+python-dotenv
+crewai[tools]
+langchain
+langchain-community
+langchain-core
+
+
+CTRL+O to save
+
+CTRL+X to exit
+
+Press Enter to exit ...
+
+
+pip install -r requirements.txt
+
+
+
+nano tasks.py
+
+
+paste the following content
+
+
+from crewai import Task
+from textwrap import dedent
+
+
+class Tasks():
+    def research_company_culture_task(self, agent, company_description, company_domain):
+        return Task(
+            description=dedent(f""" \
+                Analyze the provided company website and the hiring manager's company's domain {company_domain},
+                description: "{company_description}". Focus on understanding the company's culture, values, and mission.
+                Identify unique selling points and specific projects or achievements highlighted on the site.
+                Compile a report summarizing these insights, specifically how they can be leveraged in a job posting to attract the right candidates.
+                """),
+            expected_output=dedent(f""" \
+                A comprehensive report detailing the company's culture, values, and mission,
+                along with specific selling points relevant to the job role. Suggestions on incorporating these insights into the job posting should be included.
+                """),
+            agent=agent)
+
+    def research_role_requirements_task(self, agent, hiring_needs):
+        return Task(
+            description=dedent(f""" \
+                Based on the hiring manager's needs: "{hiring_needs}", identify the key skills, experiences, and qualities the ideal
+                candidate should possess for the role. Consider the company's current projects, its competitive landscape,
+                and industry trends. Prepare a list of recommended job requirements and qualifications that align with the
+                company's needs and values.
+                """),
+            expected_output=dedent(f""" \
+                A list of recommended skills, experiences, and qualities for the ideal candidate, aligned with the company's culture,
+                ongoing projects, and the specific role's requirements.
+                """),
+            agent=agent)
+
+    def draft_job_posting_task(self, agent, company_description, hiring_needs, specific_benefits):
+        return Task(
+            description=dedent(f""" \
+                Draft a job posting for the role described by the hiring manager: "{hiring_needs}".
+                Use the insights on "{company_description}" to start with a compelling introduction, followed by a
+                detailed role description, responsibilities, and required skills and qualifications. Ensure the tone aligns
+                with the company's culture and incorporate any unique benefits or opportunities offered by the company.
+                Specfic benefits: "{specific_benefits}"
+                """),
+            expected_output=dedent(f""" \
+                A detailed, engaging job posting that includes an introduction, role description, responsibilities,
+                requirements, and unique company benefits. The tone should resonate with the company's culture and
+                values, aimed at attracting the right candidates.
+                """),
+            agent=agent)
+
+    def review_and_edit_job_posting_task(self, agent, hiring_needs):
+        return Task(
+            description=dedent(f""" \
+                Review the draft job posting for the role: "{hiring_needs}". Check for clarity, engagement,
+                grammatical accuracy, and alignment with the company's culture and values. Edit and refine the content,
+                ensuring it speaks directly to the desired candidates and accurately reflects the role's unique
+                benefits and opportunities. Provide feedback for any necessary revisions.
+                """),
+            expected_output=dedent(f""" \
+                A polished, error-free job posting that is clear, engaging, and perfectly aligned with the company's culture and
+                values. Feedback on potential improvements and final approval for publishing. Formated in markdown.
+                """),
+            agent=agent)
+
+    def industry_analysis_task(self, agent, company_domain):
+        return Task(
+            description=dedent(f""" \
+                Conduct an in-depth analysis of the industry related to the company's domain: "{company_domain}".
+                Investigate current trends, challenges, and opportunities within the industry, utilizing market reports,
+                recent developments, and expert opinions. Assess how these factors could impact the role being hired for and
+                the overall attractiveness of the position to potential candidates.
+
+                Consider how the company's position within this industry and its response to these trends could be
+                leveraged to attract top talent. Include in your report how the role contributes to addressing industry
+                challenges or seizing opportunities.
+                """),
+            expected_output=dedent(f""" \
+                A detailed analysis report that identifies major industry trends, challenges, and opportunities relevant to the
+                company's domain and the specific job role. This report should provide strategic insights on positioning the job
+                role and the company as an attractive choice for potential candidates.
+                """),
+            agent=agent)
+
+
+
+
+create a file named "agents.py"
+
+and add the following content  
+
+
+
+from crewai import Agent
+from crewai_tools import WebsiteSearchTool, SerperDevTool, FileReadTool
+
+web_search_tool = WebsiteSearchTool()
+serper_dev_tool = SerperDevTool()
+file_read_tool = FileReadTool(
+    file_path="job_description_example.md",
+    description="A tool to read the job description example file"
+)
+
+
+class Agents():
+    def research_agent(self):
+        return Agent(
+            role="Research Analyst",
+            goal="Analyze the company website and provided description to extract insights on culture, values and specific needs",
+            tools=[web_search_tool, serper_dev_tool],
+            backstory="Expert in analyzing company cultures and identifying  key values and needs from various sources including websites and brief descriptions",
+            verbose=True
+        )
+
+    def writer_agent(self):
+        return Agent(
+            role="Job Description Writer",
+            goal="Use insights from the research analyst to create a detailed, engaging and awesome job posting",
+            tools=[web_search_tool, serper_dev_tool, file_read_tool],
+            backstory="Skilled in crafting a compelling job description that outstand or resonate with the company values and attract the right candidates",
+            verbose=True
+        )
+
+    def review_agent(self):
+        return Agent(
+            role="Review and Editing Specialist",
+            goal="Review the job posting for clarify, engagement, grammatical accuracy and alignment with company values and refine it to ensure it's perfect",
+            tools=[web_search_tool, serper_dev_tool, file_read_tool],
+            backstory="A strict and  meticulous editor with an eye for detail, ensuring every piece of content is clear, engaging and gramatically perfect",
+            verbose=True
+        )
+
+
+
+create a file named main.py and add the following content
+
+
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+from crewai import Crew
+from tasks import Tasks
+from agents import Agents
+
+tasks = Tasks()
+agents = Agents()
+
+company_description = input("What's the company description? \n")
+company_domain = input("What's the company domain?\n")
+hiring_needs = input("What are all the hiring needs?\n")
+specific_benefits = input("What are all the specific benefits you offer?\n")
+
+research_agent = agents.research_agent()
+writer_agent = agents.writer_agent()
+reviewer_agent = agents.review_agent()
+
+research_company_culture_task = tasks.research_company_culture_task(
+    research_agent, company_description, company_domain)
+industry_analysis_task = tasks.industry_analysis_task(
+    research_agent, company_domain)
+research_role_requirements_task = tasks.research_role_requirements_task(
+    research_agent, hiring_needs)
+draft_job_posting_task = tasks.draft_job_posting_task(
+    writer_agent, company_description, hiring_needs, specific_benefits)
+review_edit_job_posting_task = tasks.review_and_edit_job_posting_task(
+    reviewer_agent, hiring_needs)
+
+process_crew = Crew(
+    agents=[research_agent, writer_agent, reviewer_agent],
+    tasks=[
+        research_company_culture_task,
+        industry_analysis_task,
+        research_role_requirements_task,
+        draft_job_posting_task,
+        review_edit_job_posting_task
+    ]
+)
+
+result = process_crew.kickoff()
+
+print("Job Posting Creation Process is Completed ...")
+print("Final Job Posting ...")
+
+print(result)
+
+
+
+create a file named .env
+
+SERPER_API_KEY=YOUR_SERPER_API_KEY
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY
+
+
+
+create file named "job_description_example.md" and paste the following content
+
+
+# Amazing Job Description Example
+
+## Company Overview
+At InnovateTech, we're at the forefront of digital transformation, leveraging cutting-edge technologies to create impactful solutions. Our culture thrives on innovation, collaboration, and a commitment to excellence. Join us to be a part of a dynamic team shaping the future of tech.
+
+## Job Title: Senior Software Engineer
+
+### Location
+Remote - Global Team
+
+### Job Summary
+As a Senior Software Engineer at InnovateTech, you'll lead the development of scalable software solutions that revolutionize how businesses interact with technology. You'll collaborate with cross-functional teams to drive projects from conception to deployment, ensuring high-quality and innovative outcomes.
+
+### Responsibilities
+- Design, develop, and implement high-quality software solutions that align with our strategic direction.
+- Lead technical discussions and decision-making processes to drive technology forward.
+- Mentor junior engineers, providing guidance and support to foster a culture of excellence and growth.
+- Collaborate with stakeholders across the company to understand requirements and deliver beyond expectations.
+- Stay abreast of industry trends and emerging technologies to incorporate best practices into our workflows.
+
+### Requirements
+- Bachelor's degree in Computer Science, Engineering, or related field.
+- 5+ years of experience in software development, with a strong background in [Specific Technology/Programming Language].
+- Proven track record of leading successful projects from inception to completion.
+- Excellent problem-solving skills and a passion for technology.
+- Strong communication and teamwork abilities.
+
+### Benefits
+- Competitive salary and equity package.
+- Comprehensive health, dental, and vision insurance.
+- Unlimited PTO to promote work-life balance.
+- Remote work flexibility.
+- Professional development stipends.
+- Monthly wellness allowances.
+- Inclusive and dynamic work culture.
+
+### How to Apply
+Please submit your resume, cover letter, and any relevant portfolio links to careers@innovatetech.com with the subject "Senior Software Engineer Application". We're excited to hear from you!
+
+---
+
+InnovateTech is an equal opportunity employer. We celebrate diversity and are committed to creating an inclusive environment for all employees.
+
+
+
+
+in the shell,
+
+python3  main.py
+
+
+At CrewAI, we're at the forefront of digital transformation, leveraging cutting-edge technologies to create impactful solutions. Our culture thrives on innovation, collaboration, and a commitment to excellence. Join us to be a part of a dynamic team shaping the future of tech.
+
+https://crewai.com
+
+Generative AI Development Engineer
+
+Medical Insurance, More than 20 days of leave in a year, Car and Vehicle Loans, Free International and Continental Food, Remote Work Options
+
+
+
+Graph RAG
+
+
+Create a folder named graph-rag in LC-Demonstrations
+
+in vs code terminal,
+
+cd graph-rag
+
+git clone  https://github.com/iomegak12/graph-rag .
+
+cd graph-rag\simple-inmemory
+
+pip install -r requirements.txt
+
+
+python app.py
+
+
+
+
+alternative execution ...
+
+
+multipass shell trainingvmv2
+
+mkdir graph-rag
+
+cd graph-rag
+
+cd simple-inmemory
+
+python3 -m venv env
+
+source ./env/bin/activate
+
+nano .env
+
+SERPER_API_KEY=YOUR_SERPER_API_KEY
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY
+
+
+CTRL+O to Save
+
+CTRL+X to exit
+
+python3 app.py
+
+
+
+exit the shell
+
+
+for neo4j,
+
+multilpass shell trainingvmv2
+
+cd graph-rag
+
+cd advanced-neo4j
+
+nano .env
+
+DB_URL=neo4j://localhost:7687
+DB_USERNAME=neo4j
+DB_PASSWORD=password
+
+SERPER_API_KEY=YOUR_SERPER_API_KEY
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY
+
+
+
+
+python3 -m venv env
+
+source ./env/bin/activate
+
+pip install -r requirements.txt
+
+curl -fsSL https://get.docker.com | sudo bash -E -
+
+sudo usermod -aG docker ubuntu
+
+exit the shell
+
+again connect to the shell
+
+multipass shell trainingvmv2
+
+cd graph-rag/advanced-neo4j
+
+
+docker build -t my-neo4j-image .
+
+chmod +x ./start.sh
+
+./start.sh
+
+
+
+in another terminal window,
+
+multipass shell trainingvmv2
+
+
+cd graph-rag/advanced-neo4j
+
+source ./env/bin/activate
+
+cat .env
+
+python3 app.py
+
+
+
+Vision RAG
+
+Google Colab Machine GPU ...
+
+!pip install byaldi claudette
+!sudo apt-get install -y poppler-utils
+
+
+!pip install -q git+https://github.com/huggingface/transformers.git qwen-vl-utils flash-attn optimum auto-gptq bitsandbytes
+
+
+
+
+from google.colab import userdata
+
+
+
+
+
+import base64
+import os
+os.environ["HF_TOKEN"] = userdata.get('HF_TOKEN')# to download the ColPali model
+# os.environ["ANTHROPIC_API_KEY"] = userdata.get('ANTHROPIC_API_KEY')
+from byaldi import RAGMultiModalModel
+from claudette import *
+
+
+
+
+
+
+
+RAG = RAGMultiModalModel.from_pretrained("vidore/colpali-v1.2", verbose=1)
+
+
+
+
+
+
+
+
+
+!wget https://arxiv.org/pdf/1706.03762
+!mkdir docs
+!mv 1706.03762 docs/attention.pdf
+
+
+
+
+
+
+RAG.index(
+    input_path="./docs/attention.pdf",
+    index_name="attention",
+    store_collection_with_index=True, # set this to false if you don't want to store the base64 representation
+    overwrite=True
+)
+
+
+
+
+
+
+
+RAG.index
+
+
+
+query = "What's the BLEU score for the transformer base model?"
+
+
+
+results = RAG.search(query, k=1)
+
+
+
+results
+
+
+
+from transformers import Qwen2VLForConditionalGeneration, AutoTokenizer, AutoProcessor
+from qwen_vl_utils import process_vision_info
+import torch
+
+model = Qwen2VLForConditionalGeneration.from_pretrained(
+    "Qwen/Qwen2-VL-2B-Instruct",
+    trust_remote_code=True,
+    torch_dtype=torch.bfloat16).cuda().eval()
+
+
+
+
+
+
+processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-2B-Instruct", trust_remote_code=True)
+
+
+
+from pdf2image import convert_from_path
+
+images = convert_from_path("./docs/attention.pdf")
+
+
+
+
+images[7]
+
+
+
+image_index = results[0]["page_num"] - 1
+image_index
+
+
+
+
+query = "What's the BLEU score for the transformer base model?"
+
+
+
+
+
+messages = [
+    {
+        "role": "user",
+        "content": [
+            {
+                "type": "image",
+                "image": images[image_index],
+            },
+            {"type": "text", "text": query},
+        ],
+    }
+]
+
+
+
+
+
+text = processor.apply_chat_template(
+    messages, tokenize=False, add_generation_prompt=True
+)
+
+
+
+
+text
+
+
+
+image_inputs, video_inputs = process_vision_info(messages)
+inputs = processor(
+    text=[text],
+    images=image_inputs,
+    videos=video_inputs,
+    padding=True,
+    return_tensors="pt",
+)
+inputs = inputs.to("cuda")
+
+
+
+
+inputs
+
+
+
+!export 'PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True'
+
+
+
+generated_ids = model.generate(**inputs, max_new_tokens=50)
+generated_ids_trimmed = [
+    out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+]
+output_text = processor.batch_decode(
+    generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
+)
+
+
+
+
+
+print(output_text)
+
+
+
+Training / Fine-Tuning a Pre-Trained Model
+
+
+!pip install torch tensorboard
+!pip install  --upgrade transformers datasets accelerate evaluate bitsandbytes
+
+#FlashAttention only supports Ampere GPUs or newer. #NEED A100 IN GOOGLE COLAB
+!pip install -U flash-attn --no-build-isolation
+
+!pip install peft --quiet
+!pip install datasets trl ninja packaging
+!pip install diffusers safetensors  --quiet
+!pip install colab-env --quiet
+
+
+
+
+#### Hugging Face Token
+
+import os
+
+access_token = "xxxx"
+access_token_write = "xxxx"
+
+
+
+from huggingface_hub import login
+
+login(
+  token=access_token_write,
+  add_to_git_credential=True
+)
+
+
+
+
+import torch
+import os
+import sys
+import json
+import IPython
+from datetime import datetime
+from datasets import load_dataset
+from peft import LoraConfig, PeftModel, prepare_model_for_kbit_training, get_peft_model
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BitsAndBytesConfig,
+    AutoTokenizer,
+    TrainingArguments,
+)
+from trl import SFTTrainer
+
+
+
+
+
+# set device
+device = 'cuda'
+
+
+
+
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, pipeline
+import torch
+
+
+
+
+torch.__version__
+
+
+
+
+!apt-get update && apt-get install -y cuda-11.8
+
+
+
+
+
+!python --version
+!nvcc --version
+!nvidia-smi
+
+
+
+
+
+import torch
+torch.__version__
+
+
+
+import torch
+import os
+import sys
+import json
+import IPython
+from datetime import datetime
+from datasets import load_dataset
+from peft import LoraConfig, PeftModel, prepare_model_for_kbit_training, get_peft_model
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BitsAndBytesConfig,
+    AutoTokenizer,
+    TrainingArguments,
+)
+from trl import SFTTrainer
+
+
+
+
+
+### conversational format
+{"messages": [{"role": "system", "content": "You are..."}, {"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]}
+
+### instruction format
+{"prompt": "<prompt text>", "completion": "<ideal generated text>"}
+
+
+
+
+from datasets import load_dataset
+
+# Convert dataset to OAI messages
+system_message = """You are an text to SQL query translator. Users will ask you questions in English and you will generate a SQL query based on the provided SCHEMA.
+SCHEMA:
+{schema}"""
+
+def create_conversation(sample):
+  return {
+    "messages": [
+      {"role": "system", "content": system_message.format(schema=sample["context"])},
+      {"role": "user", "content": sample["question"]},
+      {"role": "assistant", "content": sample["answer"]}
+    ]
+  }
+
+# Load dataset from the hub
+dataset = load_dataset("b-mc2/sql-create-context", split="train")
+dataset = dataset.shuffle().select(range(12500))
+
+# Convert dataset to OAI messages
+dataset = dataset.map(create_conversation, remove_columns=dataset.features,batched=False)
+
+# split dataset into 10,000 training samples and 2,500 test samples
+dataset = dataset.train_test_split(test_size=2500/12500)
+
+print(dataset["train"][345]["messages"])
+
+# save datasets to disk
+dataset["train"].to_json("train_dataset.json", orient="records")
+dataset["test"].to_json("test_dataset.json", orient="records")
+
+
+
+
+
+from datasets import load_dataset
+
+# Load jsonl data from disk for sql
+dataset = load_dataset("json", data_files="train_dataset.json", split="train")
+
+
+
+
+print(dataset[345]["messages"])
+
+
+
+
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+from trl import setup_chat_format
+
+# Hugging Face model id
+model_id = "mistralai/Mistral-7B-Instruct-v0.3"
+
+# BitsAndBytesConfig int-4 config
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True, bnb_4bit_use_double_quant=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.bfloat16
+)
+
+# Load model and tokenizer
+model = AutoModelForCausalLM.from_pretrained(
+    model_id,
+    device_map="auto",
+    attn_implementation="flash_attention_2",
+    torch_dtype=torch.bfloat16,
+    quantization_config=bnb_config
+)
+tokenizer = AutoTokenizer.from_pretrained(model_id,use_fast=True)
+tokenizer.padding_side = 'right' # to prevent warnings
+
+# We redefine the pad_token and pad_token_id with out of vocabulary token (unk_token)
+tokenizer.pad_token = tokenizer.unk_token
+tokenizer.pad_token_id = tokenizer.unk_token_id
+
+
+
+
+
+print(model)
+
+
+
+from peft import LoraConfig
+
+# LoRA config based on QLoRA paper & Sebastian Raschka experiment
+peft_config = LoraConfig(
+        lora_alpha=128,
+        lora_dropout=0.05,
+        r=256,
+        bias="none",
+        target_modules="all-linear",
+        task_type="CAUSAL_LM",
+)
+
+
+
+
+
+#!pip install transformers==4.36.2 --quiet
+#!pip install transformers accelerate --quiet
+
+from transformers import TrainingArguments
+
+
+args = TrainingArguments(
+    output_dir="Mistral-7B-text-to-sql-flash-attention-v20",    # directory to save and repository id
+    num_train_epochs=3,                     # number of training epochs
+    per_device_train_batch_size=3,          # batch size per device during training
+    gradient_accumulation_steps=2,          # number of steps before performing a backward/update pass
+    gradient_checkpointing=True,            # use gradient checkpointing to save memory
+    optim="adamw_torch_fused",              # use fused adamw optimizer
+    logging_steps=10,                       # log every 10 steps
+    save_strategy="epoch",                  # save checkpoint every epoch
+    learning_rate=2e-4,                     # learning rate, based on QLoRA paper
+    bf16=True,                              # use bfloat16 precision
+    tf32=True,                              # use tf32 precision
+    max_grad_norm=0.3,                      # max gradient norm based on QLoRA paper
+    warmup_ratio=0.03,                      # warmup ratio based on QLoRA paper
+    lr_scheduler_type="constant",           # use constant learning rate scheduler
+    push_to_hub=True,                       # push model to hub
+    report_to="tensorboard",                # report metrics to tensorboard
+)
+
+
+
+
+
+from trl import SFTTrainer
+max_seq_length = 3072 # max sequence length for model and packing of the dataset
+
+trainer = SFTTrainer(
+    model=model,
+    args=args,
+    train_dataset=dataset,
+    peft_config=peft_config,
+    max_seq_length=max_seq_length,
+    tokenizer=tokenizer,
+    packing=True,
+    dataset_kwargs={
+        "add_special_tokens": False,  # We template with special tokens
+        "append_concat_token": False, # No need to add additional separator token
+    }
+)
+
+
+
+
+
+# start training, the model will be automatically saved to the hub and the output directory
+trainer.train()
+
+# save model
+trainer.save_model()
+
+
+
+
+# free the memory again
+# del model
+# del trainer
+torch.cuda.empty_cache()
+
+
+
+
+import torch
+from peft import AutoPeftModelForCausalLM
+from transformers import AutoTokenizer, pipeline
+%cd /content/
+peft_model_id = "./Mistral-7B-text-to-sql-flash-attention-v20"
+
+# Load Model with PEFT adapter
+model = AutoPeftModelForCausalLM.from_pretrained(
+  peft_model_id,
+  device_map="auto",
+  torch_dtype=torch.float16
+)
+tokenizer = AutoTokenizer.from_pretrained(peft_model_id)
+pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
+
+
+
+
+
+print(model)
+
+
+
+
+from datasets import load_dataset
+from random import randint
+
+
+# Load our test dataset
+eval_dataset = load_dataset("json", data_files="test_dataset.json", split="train")
+rand_idx = randint(0, len(eval_dataset))
+
+# Test on sample
+prompt = pipe.tokenizer.apply_chat_template(eval_dataset[rand_idx]["messages"][:2], tokenize=False, add_generation_prompt=True)
+outputs = pipe(prompt, max_new_tokens=256, do_sample=False, temperature=0.1, top_k=50, top_p=0.1, eos_token_id=pipe.tokenizer.eos_token_id, pad_token_id=pipe.tokenizer.pad_token_id)
+
+print(f"Query:\n{eval_dataset[rand_idx]['messages'][1]['content']}")
+print(f"Original Answer:\n{eval_dataset[rand_idx]['messages'][2]['content']}")
+print(f"Generated Answer:\n{outputs[0]['generated_text'][len(prompt):].strip()}")
+
+
+
+
+from tqdm import tqdm
+
+def evaluate(sample):
+    prompt = pipe.tokenizer.apply_chat_template(sample["messages"][:2], tokenize=False, add_generation_prompt=True)
+    outputs = pipe(prompt, max_new_tokens=256, do_sample=True, temperature=0.7, top_k=50, top_p=0.95, eos_token_id=pipe.tokenizer.eos_token_id, pad_token_id=pipe.tokenizer.pad_token_id)
+    predicted_answer = outputs[0]['generated_text'][len(prompt):].strip()
+    if predicted_answer == sample["messages"][2]["content"]:
+        return 1
+    else:
+        return 0
+
+success_rate = []
+number_of_eval_samples = 1000
+# iterate over eval dataset and predict
+for s in tqdm(eval_dataset.shuffle().select(range(number_of_eval_samples))):
+    success_rate.append(evaluate(s))
+
+# compute accuracy
+accuracy = sum(success_rate)/len(success_rate)
+
+print(f"Accuracy: {accuracy*100:.2f}%")
+
+
+
+
+import torch
+
+from peft import AutoPeftModelForCausalLM
+from transformers import AutoTokenizer, pipeline
+
+
+
+peft_model_id = "iomegak12/Mistral-7B-text-to-sql-flash-attention-v20"
+
+model = AutoPeftModelForCausalLM.from_pretrained( peft_model_id, device_map="auto", torch_dtype=torch.float16 )
+tokenizer = AutoTokenizer.from_pretrained(peft_model_id)
+pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
+
+
+
+
+prompt='What was the first album Beyoncé released as a solo artist?'
+prompt = f"Instruct: generate a SQL query.\n{prompt}\nOutput:\n" # for dataset b-mc2/sql-create-context
+outputs = pipe(prompt, max_new_tokens=1024, do_sample=True, temperature=0.9, top_k=50, top_p=0.1, eos_token_id=pipe.tokenizer.eos_token_id, pad_token_id=pipe.tokenizer.eos_token_id)
+
+print('Question: %s'%prompt)
+print(f"Generated Answer:\n{outputs[0]['generated_text'][len(prompt):].strip()}")
+
